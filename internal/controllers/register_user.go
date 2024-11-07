@@ -22,11 +22,11 @@ func RegisterUser(db *sql.DB, c *gin.Context) {
 
 	// ユーザー名の重複チェック
 	var existingUser string
-	err := db.QueryRow("SELECT username FROM users WHERE username = ?", user.Username).Scan(&existingUser)
+	err := db.QueryRow("SELECT name FROM users WHERE name = ?", user.Name).Scan(&existingUser)
 	if err == nil {
 		c.JSON(http.StatusConflict, gin.H{
 			"status":  "error",
-			"message": "Username already exists",
+			"message": "name already exists",
 		})
 		return
 	} else if err != sql.ErrNoRows {
@@ -50,7 +50,7 @@ func RegisterUser(db *sql.DB, c *gin.Context) {
 	}
 
 	// ユーザーをデータベースに挿入
-	_, err = db.Exec("INSERT INTO users (username, password) VALUES (?, ?)", user.Username, hashedPassword)
+	_, err = db.Exec("INSERT INTO users (name, password) VALUES (?, ?)", user.Name, hashedPassword)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -64,6 +64,6 @@ func RegisterUser(db *sql.DB, c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"status":  "success",
 		"message": "User created successfully",
-		"data":    gin.H{"username": user.Username},
+		"data":    gin.H{"name": user.Name},
 	})
 }

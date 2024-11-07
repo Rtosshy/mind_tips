@@ -23,12 +23,12 @@ func LoginUser(db *sql.DB, c *gin.Context) {
 
 	// ユーザーの情報をデータベースから取得
 	var storedUser models.User
-	err := db.QueryRow("SELECT id, username, password FROM users WHERE username = ?", user.Username).Scan(&storedUser.ID, &storedUser.Username, &storedUser.Password)
+	err := db.QueryRow("SELECT id, name, password FROM users WHERE name = ?", user.Name).Scan(&storedUser.ID, &storedUser.Name, &storedUser.Password)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"status":  "error",
-				"message": "Invalid username or password",
+				"message": "Invalid name or password",
 			})
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -45,13 +45,13 @@ func LoginUser(db *sql.DB, c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"status":  "error",
-			"message": "Invalid username or password",
+			"message": "Invalid name or password",
 		})
 		return
 	}
 
 	// JWTトークンを生成
-	token, err := auth.GenerateJWT(storedUser.Username)
+	token, err := auth.GenerateJWT(storedUser.Name)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",

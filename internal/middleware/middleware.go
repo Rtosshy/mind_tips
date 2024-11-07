@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"mind_tips/internal/auth"
 	"net/http"
 
@@ -25,7 +26,8 @@ func JWTMiddleware() gin.HandlerFunc {
 		}
 
 		// ユーザー名をコンテキストに設定
-		c.Set("username", claims.Username)
+		fmt.Println("Username from token:", claims.Name)
+		c.Set("name", claims.Name)
 		c.Next()
 	}
 }
