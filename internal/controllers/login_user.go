@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"mind_tips/internal/auth"
 	"mind_tips/internal/models"
+	"mind_tips/internal/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,11 +14,7 @@ import (
 func LoginUser(db *sql.DB, c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  "error",
-			"message": "Invalid request format",
-			"error":   err.Error(),
-		})
+		utils.LogError(c, http.StatusBadRequest, err, "Invalid request format")
 		return
 	}
 
@@ -26,16 +23,9 @@ func LoginUser(db *sql.DB, c *gin.Context) {
 	err := db.QueryRow("SELECT id, name, password FROM users WHERE name = ?", user.Name).Scan(&storedUser.ID, &storedUser.Name, &storedUser.Password)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"status":  "error",
-				"message": "Invalid name or password",
-			})
+			utils.LogError(c, http.StatusUnauthorized, err, "Invalid name or password")
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status":  "error",
-				"message": "Internal server error",
-				"error":   err.Error(),
-			})
+			utils.LogError(c, http.StatusInternalServerError, err, "Failed to retrieve user")
 		}
 		return
 	}
@@ -43,21 +33,14 @@ func LoginUser(db *sql.DB, c *gin.Context) {
 	// パスワードの比較
 	err = bcrypt.CompareHashAndPassword([]byte(storedUser.Password), []byte(user.Password))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"status":  "error",
-			"message": "Invalid name or password",
-		})
+		utils.LogError(c, http.StatusUnauthorized, err, "Invalid name or password")
 		return
 	}
 
 	// JWTトークンを生成
 	token, err := auth.GenerateJWT(storedUser.Name)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status":  "error",
-			"message": "Failed to generate token",
-			"error":   err.Error(),
-		})
+		utils.LogError(c, http.StatusInternalServerError, err, "Failed to generate token")
 		return
 	}
 
