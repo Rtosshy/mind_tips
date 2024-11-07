@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"database/sql"
-	"fmt"
+	"mind_tips/internal/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,12 +10,8 @@ import (
 
 func GetUser(db *sql.DB, c *gin.Context) {
 	name, exists := c.Get("name")
-	fmt.Println("Logged in as:", name)
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"status":  "error",
-			"message": "User not authorized",
-		})
+		utils.LogError(c, http.StatusUnauthorized, nil, "User not authorized")
 		return
 	}
 
@@ -26,11 +22,7 @@ func GetUser(db *sql.DB, c *gin.Context) {
 	var user User
 	err := db.QueryRow("SELECT id, name FROM users WHERE name = ?", name).Scan(&user.ID, &user.Name)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status":  "error",
-			"message": "Failed to retrieve user",
-			"error":   err.Error(),
-		})
+		utils.LogError(c, http.StatusInternalServerError, err, "Failed to retrieve user")
 		return
 	}
 

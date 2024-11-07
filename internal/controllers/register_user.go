@@ -3,6 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"mind_tips/internal/models"
+	"mind_tips/internal/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,11 +13,7 @@ import (
 func RegisterUser(db *sql.DB, c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  "error",
-			"message": "Invalid request format",
-			"error":   err.Error(),
-		})
+		utils.LogError(c, http.StatusBadRequest, err, "Invalid request format")
 		return
 	}
 
@@ -24,39 +21,24 @@ func RegisterUser(db *sql.DB, c *gin.Context) {
 	var existingUser string
 	err := db.QueryRow("SELECT name FROM users WHERE name = ?", user.Name).Scan(&existingUser)
 	if err == nil {
-		c.JSON(http.StatusConflict, gin.H{
-			"status":  "error",
-			"message": "name already exists",
-		})
+		utils.LogError(c, http.StatusConflict, nil, "name already exists")
 		return
 	} else if err != sql.ErrNoRows {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status":  "error",
-			"message": "Database error",
-			"error":   err.Error(),
-		})
+		utils.LogError(c, http.StatusInternalServerError, err, "Failed to retrieve user")
 		return
 	}
 
 	// パスワードをハッシュ化
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status":  "error",
-			"message": "Failed to hash password",
-			"error":   err.Error(),
-		})
+		utils.LogError(c, http.StatusInternalServerError, err, "Failed to hash password")
 		return
 	}
 
 	// ユーザーをデータベースに挿入
 	_, err = db.Exec("INSERT INTO users (name, password) VALUES (?, ?)", user.Name, hashedPassword)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status":  "error",
-			"message": "Failed to create user",
-			"error":   err.Error(),
-		})
+		utils.LogError(c, http.StatusInternalServerError, err, "Failed to create user")
 		return
 	}
 
