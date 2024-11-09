@@ -10,14 +10,14 @@ var jwtKey = []byte("your_secret_key_here") // 秘密鍵
 
 // JWTのペイロード
 type Claims struct {
-	Name string `json:"name"`
+	UserName string `binding:"required,min=3,max=50" json:"user_name"`
 	jwt.StandardClaims
 }
 
 // トークンを生成
-func GenerateJWT(name string) (string, error) {
+func GenerateJWT(userName string) (string, error) {
 	claims := Claims{
-		Name: name,
+		UserName: userName,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), // トークンの有効期限（24時間）
 		},

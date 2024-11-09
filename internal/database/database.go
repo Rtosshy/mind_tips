@@ -12,7 +12,7 @@ var db *sql.DB
 // InitDBはMySQLデータベースに接続します
 func InitDB() {
 	var err error
-	db, err = sql.Open("mysql", "root:root_password@tcp(db:3306)/blog")
+	db, err = sql.Open("mysql", "root:root_password@tcp(db:3306)/mind_tips")
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}

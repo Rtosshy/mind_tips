@@ -26,7 +26,7 @@ func JWTMiddleware() gin.HandlerFunc {
 		}
 
 		// ユーザー名をコンテキストに設定
-		c.Set("name", claims.Name)
+		c.Set("user_name", claims.UserName)
 		c.Next()
 	}
 }

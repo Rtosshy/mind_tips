@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"mind_tips/internal/models"
 	"mind_tips/internal/utils"
 	"net/http"
 
@@ -9,22 +10,18 @@ import (
 )
 
 func GetUser(db *sql.DB, c *gin.Context) {
-	name, exists := c.Get("name")
+	userName, exists := c.Get("user_name")
 	if !exists {
 		utils.LogError(c, http.StatusUnauthorized, nil, "User not authorized")
 		return
 	}
 
-	type User struct {
-		ID   int    `json:"id"`
-		Name string `json:"name"`
-	}
-	var user User
-	err := db.QueryRow("SELECT id, name FROM users WHERE name = ?", name).Scan(&user.ID, &user.Name)
+	var user models.UserResponse
+	err := db.QueryRow("SELECT user_name, bio FROM user WHERE user_name = ?", userName).Scan(&user.UserName, &user.Bio)
 	if err != nil {
 		utils.LogError(c, http.StatusInternalServerError, err, "Failed to retrieve user")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User found", "user": user, "status": "success"})
+	c.JSON(http.StatusOK, gin.H{"data": user, "message": "User found", "status": "success"})
 }
