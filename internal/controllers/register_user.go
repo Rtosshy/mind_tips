@@ -11,7 +11,7 @@ import (
 )
 
 func RegisterUser(db *sql.DB, c *gin.Context) {
-	var user models.User
+	var user models.UserAuth
 	if err := c.ShouldBindJSON(&user); err != nil {
 		utils.LogError(c, http.StatusBadRequest, err, "Invalid request format")
 		return
@@ -19,7 +19,7 @@ func RegisterUser(db *sql.DB, c *gin.Context) {
 
 	// ユーザー名の重複チェック
 	var existingUser string
-	err := db.QueryRow("SELECT name FROM users WHERE name = ?", user.Name).Scan(&existingUser)
+	err := db.QueryRow("SELECT user_name FROM user WHERE user_name = ?", user.UserName).Scan(&existingUser)
 	if err == nil {
 		utils.LogError(c, http.StatusConflict, nil, "name already exists")
 		return
@@ -36,7 +36,7 @@ func RegisterUser(db *sql.DB, c *gin.Context) {
 	}
 
 	// ユーザーをデータベースに挿入
-	_, err = db.Exec("INSERT INTO users (name, password) VALUES (?, ?)", user.Name, hashedPassword)
+	_, err = db.Exec("INSERT INTO user (user_name, password) VALUES (?, ?)", user.UserName, hashedPassword)
 	if err != nil {
 		utils.LogError(c, http.StatusInternalServerError, err, "Failed to create user")
 		return
@@ -44,8 +44,8 @@ func RegisterUser(db *sql.DB, c *gin.Context) {
 
 	// 成功時のレスポンス
 	c.JSON(http.StatusCreated, gin.H{
-		"status":  "success",
+		"data":    gin.H{"name": user.UserName},
 		"message": "User created successfully",
-		"data":    gin.H{"name": user.Name},
+		"status":  "success",
 	})
 }

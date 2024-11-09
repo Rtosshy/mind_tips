@@ -9,7 +9,7 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: blog
+      MYSQL_DATABASE: mind_tips
       MYSQL_USER: user
       MYSQL_PASSWORD: user_password
     ports:

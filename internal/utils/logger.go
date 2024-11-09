@@ -12,16 +12,16 @@ func LogError(c *gin.Context, statusCode int, err error, message string) {
 	if err != nil {
 		log.Printf("Error: %v, StatusCode: %d, Message: %s", err, statusCode, message) // エラーがある場合にログ出力
 		c.JSON(statusCode, gin.H{
-			"status":  "error",
-			"message": message,
 			"error":   err.Error(),
+			"message": message,
+			"status":  "error",
 		})
 	} else {
 		// errがnilの場合
 		log.Printf("StatusCode: %d, Message: %s", statusCode, message) // エラーがない場合にもログを出力
 		c.JSON(statusCode, gin.H{
-			"status":  "error",
 			"message": message,
+			"status":  "error",
 		})
 	}
 }
