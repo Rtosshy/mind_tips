@@ -17,12 +17,23 @@ func SetupRouter(router *gin.Engine, db *sql.DB) {
 		c.JSON(http.StatusOK, gin.H{"message": "Welcome to the blog app!"})
 	})
 	router.POST("/register", func(c *gin.Context) {
-		controllers.RegisterUser(db, c)
+		controllers.Register(db, c)
 	})
 	router.POST("/login", func(c *gin.Context) {
-		controllers.LoginUser(db, c)
+		controllers.Login(db, c)
 	})
-	router.GET("/user", authMiddleware, func(c *gin.Context) {
-		controllers.GetUser(db, c)
-	})
+
+	userRoutes := router.Group("/user")
+	userRoutes.Use(authMiddleware)
+	{
+		userRoutes.GET("", func(c *gin.Context) {
+			controllers.GetUser(db, c)
+		})
+		userRoutes.DELETE("", func(c *gin.Context) {
+			controllers.DeleteUser(db, c)
+		})
+		userRoutes.PUT("", func(c *gin.Context) {
+			controllers.UpdateUser(db, c)
+		})
+	}
 }

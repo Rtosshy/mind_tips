@@ -11,7 +11,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func LoginUser(db *sql.DB, c *gin.Context) {
+func Login(db *sql.DB, c *gin.Context) {
 	var user models.UserAuth
 	if err := c.ShouldBindJSON(&user); err != nil {
 		utils.LogError(c, http.StatusBadRequest, err, "Invalid request format")
