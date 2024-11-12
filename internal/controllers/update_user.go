@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
+	"mind_tips/internal/models"
 	"mind_tips/internal/utils"
 	"net/http"
 
@@ -15,10 +17,18 @@ func UpdateUser(db *sql.DB, c *gin.Context) {
 		return
 	}
 
+	var request models.UpdateUserRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		utils.LogError(c, http.StatusBadRequest, err, "Invalid request format")
+		return
+	}
+
+	fmt.Println(request)
+
 	result, err := db.Exec(
 		"UPDATE user SET user_name = ?, bio = ? WHERE user_name = ?",
-		c.PostForm("new_user_name"),
-		c.PostForm("new_bio"),
+		request.NewUserName,
+		request.NewBio,
 		userName,
 	)
 	if err != nil {

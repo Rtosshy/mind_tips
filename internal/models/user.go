@@ -13,3 +13,8 @@ type UserResponse struct {
 	UserName string         `binding:"required" json:"user_name"`
 	Bio      sql.NullString `json:"bio"`
 }
+
+type UpdateUserRequest struct {
+	NewUserName string `binding:"required,min=3,max=50" json:"new_user_name"`
+	NewBio      string `binding:"required,max=255" json:"new_bio"`
+}
