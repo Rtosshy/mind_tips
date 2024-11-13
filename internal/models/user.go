@@ -4,6 +4,7 @@ import "database/sql"
 
 // ユーザー名とパスワードで共通の構造体を使用
 type UserAuth struct {
+	UserID   int    `json:"user_id"`
 	UserName string `binding:"required,min=3,max=50" json:"user_name"`
 	Password string `binding:"required,min=8,max=255" json:"password"`
 }

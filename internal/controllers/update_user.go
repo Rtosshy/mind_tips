@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func UpdateUser(db *sql.DB, c *gin.Context) {
+func UpdateUser(db *sql.DB, c *gin.Context, authMiddleware *jwt.GinJWTMiddleware) {
 	claims := jwt.ExtractClaims(c)
 	currentUserName, ok := claims["user_name"].(string)
 	if !ok {
@@ -99,10 +99,24 @@ func UpdateUser(db *sql.DB, c *gin.Context) {
 		return
 	}
 
+	// 新しいトークンを生成するためのデータを準備
+	newClaims := map[string]interface{}{
+		"user_id":   claims["user_id"],
+		"user_name": request.NewUserName,
+	}
+
+	newToken, expire, err := authMiddleware.TokenGenerator(newClaims)
+	if err != nil {
+		utils.LogError(c, http.StatusInternalServerError, err, "Failed to generate new token")
+		return
+	}
+
 	// 成功時のレスポンス
 	c.JSON(http.StatusOK, gin.H{
-		"status":  "success",
-		"message": "Update successful",
+		"status":    "success",
+		"message":   "Update successful",
+		"new_token": newToken,
+		"expire_at": expire,
 		"data": gin.H{
 			"previous": gin.H{
 				"user_name": currentUser.UserName,

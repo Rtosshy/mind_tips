@@ -15,7 +15,7 @@ func GetUser(db *sql.DB, c *gin.Context) {
 	claims := jwt.ExtractClaims(c)
 	userName, ok := claims["user_name"].(string)
 	if !ok {
-		log.Printf("Failed to extract username from claims: %v", claims)
+		log.Printf("Failed to extract user_name from claims: %v", claims)
 		utils.LogError(c, http.StatusUnauthorized, nil, "User not authorized")
 		return
 	}
