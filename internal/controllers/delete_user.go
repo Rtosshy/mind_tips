@@ -2,15 +2,19 @@ package controllers
 
 import (
 	"database/sql"
+	"log"
 	"mind_tips/internal/utils"
 	"net/http"
 
+	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 )
 
 func DeleteUser(db *sql.DB, c *gin.Context) {
-	userName, exists := c.Get("user_name")
-	if !exists {
+	claims := jwt.ExtractClaims(c)
+	userName, ok := claims["user_name"].(string)
+	if !ok {
+		log.Printf("Failed to extract username from claims: %v", claims)
 		utils.LogError(c, http.StatusUnauthorized, nil, "User not authorized")
 		return
 	}
