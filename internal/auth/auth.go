@@ -13,7 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var IdentityKey = "user_name"
+var IdentityKey = "user_id"
 
 func NewJWTMiddleware(db *sql.DB) (*jwt.GinJWTMiddleware, error) {
 	return jwt.New(&jwt.GinJWTMiddleware{
@@ -29,6 +29,7 @@ func NewJWTMiddleware(db *sql.DB) (*jwt.GinJWTMiddleware, error) {
 				log.Println(ret)
 				return jwt.MapClaims{
 					IdentityKey: v[IdentityKey],
+					"user_name": v["user_name"],
 				}
 			}
 			log.Println("PayloadFunc failed")
@@ -38,6 +39,7 @@ func NewJWTMiddleware(db *sql.DB) (*jwt.GinJWTMiddleware, error) {
 			claims := jwt.ExtractClaims(c)
 			return map[string]interface{}{
 				IdentityKey: claims[IdentityKey],
+				"user_name": claims["user_name"],
 			}
 		},
 		Authenticator: func(c *gin.Context) (interface{}, error) {
@@ -47,7 +49,7 @@ func NewJWTMiddleware(db *sql.DB) (*jwt.GinJWTMiddleware, error) {
 			}
 			// 本来ここでデータベースからのユーザー認証を行います
 			var storedUser models.UserAuth
-			err := db.QueryRow("SELECT user_name, password FROM user WHERE user_name = ?", user.UserName).Scan(&storedUser.UserName, &storedUser.Password)
+			err := db.QueryRow("SELECT user_id, user_name, password FROM user WHERE user_name = ?", user.UserName).Scan(&storedUser.UserID, &storedUser.UserName, &storedUser.Password)
 			if err != nil {
 				if err == sql.ErrNoRows {
 					utils.LogError(c, http.StatusUnauthorized, err, "Invalid name or password")
@@ -65,7 +67,8 @@ func NewJWTMiddleware(db *sql.DB) (*jwt.GinJWTMiddleware, error) {
 			log.Printf("User %s logged in successfully", storedUser.UserName)
 			// 認証成功、ユーザー情報を返す
 			var data = map[string]interface{}{
-				IdentityKey: storedUser.UserName,
+				IdentityKey: storedUser.UserID,
+				"user_name": storedUser.UserName,
 			}
 			log.Printf("Authenticator returning data: %#v", data)
 			return data, nil
@@ -79,7 +82,7 @@ func NewJWTMiddleware(db *sql.DB) (*jwt.GinJWTMiddleware, error) {
 			v, ok := data.(map[string]interface{})
 			log.Println(v[IdentityKey], ok)
 			if v, ok := data.(map[string]interface{}); ok {
-				userName, exists := v[IdentityKey]
+				userName, exists := v["user_name"]
 				if !exists {
 					log.Println("Authorization failed: user_name not found in claims")
 					return false

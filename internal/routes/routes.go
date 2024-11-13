@@ -31,7 +31,7 @@ func SetupRouter(router *gin.Engine, db *sql.DB) {
 			controllers.DeleteUser(db, c)
 		})
 		userRoutes.PUT("", func(c *gin.Context) {
-			controllers.UpdateUser(db, c)
+			controllers.UpdateUser(db, c, authMiddleware)
 		})
 	}
 }
