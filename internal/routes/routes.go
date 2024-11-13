@@ -11,7 +11,7 @@ import (
 )
 
 func SetupRouter(router *gin.Engine, db *sql.DB) {
-	authMiddleware := middleware.JWTMiddleware()
+	authMiddleware := middleware.JWTMiddleware(db)
 
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "Welcome to the blog app!"})
@@ -19,12 +19,10 @@ func SetupRouter(router *gin.Engine, db *sql.DB) {
 	router.POST("/register", func(c *gin.Context) {
 		controllers.Register(db, c)
 	})
-	router.POST("/login", func(c *gin.Context) {
-		controllers.Login(db, c)
-	})
+	router.POST("/login", authMiddleware.LoginHandler)
 
 	userRoutes := router.Group("/user")
-	userRoutes.Use(authMiddleware)
+	userRoutes.Use(authMiddleware.MiddlewareFunc())
 	{
 		userRoutes.GET("", func(c *gin.Context) {
 			controllers.GetUser(db, c)
